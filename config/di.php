@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use YiiRocks\Voyti\ApiRateLimiter\AuthenticatedRateLimiterMiddleware;
 use YiiRocks\Voyti\ApiRateLimiter\RateLimiterConfig;
 use YiiRocks\Voyti\ApiRateLimiter\RateLimiterConfigFactory;
 use Yiisoft\User\CurrentUser;
@@ -32,12 +33,10 @@ return [
     LimitPolicyInterface::class => static fn(RateLimiterConfigFactory $factory, CurrentUser $currentUser)
         => $factory->createLimitPolicy($currentUser),
 
-    // Tagged with `voyti-api.extension-middleware` so voyti-api's ApiExtensionMiddleware picks this up
-    // automatically once the package is installed - no host wiring, no change to voyti-api's own
-    // routes.php - and covers every versioned route group ApiExtensionMiddleware is wired into (v1
-    // today, v2+ later), not just v1/.
-    LimitRequestsMiddleware::class => [
-        'class' => LimitRequestsMiddleware::class,
+    // The wrapper stands down for public requests, because the policy fingerprints by user ID.
+    LimitRequestsMiddleware::class => LimitRequestsMiddleware::class,
+    AuthenticatedRateLimiterMiddleware::class => [
+        'class' => AuthenticatedRateLimiterMiddleware::class,
         'tags' => ['voyti-api.extension-middleware'],
     ],
 ];

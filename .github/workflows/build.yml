@@ -20,3 +20,5 @@ name: build
 jobs:
   ci:
     uses: YiiRocks/.github/.github/workflows/ci.yml@main
+    with:
+      php-extensions: fileinfo, intl
